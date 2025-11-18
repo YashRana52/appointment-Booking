@@ -1,7 +1,22 @@
 import React from "react";
 
-function PrescriptionViewModal() {
-  return <div>PrescriptionViewModal</div>;
+interface PrescriptionViewModalProps {
+  appointment: any;
+  userType: string;
+  trigger: React.ReactNode;
 }
+
+const PrescriptionViewModal: React.FC<PrescriptionViewModalProps> = ({
+  appointment,
+  userType,
+  trigger,
+}) => {
+  return (
+    <div>
+      PrescriptionViewModal
+      {/* yahan aap appointment details show kar sakte ho */}
+    </div>
+  );
+};
 
 export default PrescriptionViewModal;
