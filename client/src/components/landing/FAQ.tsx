@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 
 function FAQ() {
-  const [openIndex, setOpenIndex] = React.useState(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqsData = [
     {
