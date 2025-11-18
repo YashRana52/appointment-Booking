@@ -273,7 +273,7 @@ const DoctorAppointmentContent = () => {
 
   return (
     <>
-      <Header showDashboardNav={true} />
+      <Header showDashBoardNav={true} />
 
       <div className="min-h-screen bg-[#f6f8fc] pt-16">
         <div className="max-w-6xl mx-auto px-4 py-8">
