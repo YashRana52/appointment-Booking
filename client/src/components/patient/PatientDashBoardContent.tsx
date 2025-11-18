@@ -273,12 +273,18 @@ function PatientDashBoardContent() {
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) =>
+              setActiveTab(value as "upcoming" | "past")
+            }
+          >
             <TabsList className="grid grid-cols-2 w-full rounded-xl">
               <TabsTrigger value="upcoming">
                 <Clock className="w-4 h-4 mr-2" />
                 Upcoming ({tabCounts.upcoming})
               </TabsTrigger>
+
               <TabsTrigger value="past">
                 <Calendar className="w-4 h-4 mr-2" />
                 Past ({tabCounts.past})
