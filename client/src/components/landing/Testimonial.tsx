@@ -1,6 +1,14 @@
 import React from "react";
 
-const cardsData = [
+interface CardType {
+  image: string;
+  name: string;
+  handle: string;
+  date: string;
+  review: string;
+}
+
+const cardsData: CardType[] = [
   {
     image:
       "https://media.istockphoto.com/id/1279844456/photo/young-indian-business-woman-entrepreneur-looking-at-camera-in-the-office.jpg?s=2048x2048&w=is&k=20&c=HFSZlaDFEoUKkGgTVduvYumtJoX2vev6FkGd-jscLUo=",
@@ -40,7 +48,7 @@ const cardsData = [
 ];
 
 function Testimonial() {
-  const CreateCard = ({ card }) => (
+  const CreateCard = ({ card }: { card: CardType }) => (
     <div className="p-4 rounded-2xl mx-4 shadow-md hover:shadow-xl bg-white transition-all duration-300 w-72 shrink-0 border border-gray-100">
       {/* Profile */}
       <div className="flex gap-3 items-center">
@@ -103,7 +111,7 @@ function Testimonial() {
         <div className="absolute right-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-l from-white to-transparent" />
       </div>
 
-      {/* Second Row*/}
+      {/* Second Row */}
       <div className="overflow-hidden w-full max-w-6xl mx-auto relative mt-10">
         <div className="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-white to-transparent" />
         <div className="marquee-reverse">
