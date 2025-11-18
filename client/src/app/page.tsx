@@ -10,8 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 function Home() {
-  const user = userAuthStore();
-
+  const { user } = userAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -25,11 +24,10 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white ">
+    <div className="min-h-screen bg-white">
       <Header showDashBoardNav={false} />
-      <main className="pt-16 ">
+      <main className="pt-16">
         <LandingHero />
-
         <Testimonial />
         <Brand />
         <FAQ />

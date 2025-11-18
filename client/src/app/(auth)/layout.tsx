@@ -16,9 +16,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       if (!user.isVerified) {
-        redirect(`/onboarding/${user.type}`);
+        redirect(`/onboarding/${user?.type}`);
       } else {
-        if (user.type === "doctor") {
+        if (user?.type === "doctor") {
           redirect("/doctor/dashboard");
         } else {
           redirect("/patient/dashboard");
