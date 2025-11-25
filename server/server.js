@@ -62,6 +62,9 @@ app.use("/api/payment", paymentRouter);
 app.get("/health", (req, res) => {
   res.ok({ time: new Date().toISOString() }, "Server is healthy");
 });
+app.get("/", (req, res) => {
+  res.send("Backend is running...");
+});
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`Server is listen on port:${PORT}`));
