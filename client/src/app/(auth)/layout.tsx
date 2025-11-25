@@ -25,16 +25,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [loadingRedirect, setLoadingRedirect] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
 
-  // Mark user as loaded
+  // ✅ Wait until user is loaded from store
   useEffect(() => {
-    if (user !== null) {
+    if (user !== null || !isAuthenticated) {
       setUserLoaded(true);
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
-  // Redirect Logic (runs only when user is fully loaded)
+  // ✅ Redirect Logic (runs only when user is fully loaded)
   useEffect(() => {
-    if (!userLoaded) return; // Fix: wait until user is loaded
+    if (!userLoaded) return;
 
     if (isAuthenticated && user) {
       setLoadingRedirect(true);
@@ -47,11 +47,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
           );
         }
-      }, 1500);
+      }, 800); // shorter delay for smoother UX
     }
-  }, [isAuthenticated, userLoaded, user]);
+  }, [isAuthenticated, userLoaded, user, router]);
 
-  // Loader UI
+  // ✅ Loader UI
   if (loadingRedirect) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-900">
@@ -123,28 +123,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Floating Orbs */}
         <motion.div
-          animate={{
-            y: [0, -30, 0],
-            rotate: [0, 180, 360],
-          }}
+          animate={{ y: [0, -30, 0], rotate: [0, 180, 360] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-cyan-400/30 to-blue-500/30 rounded-full blur-3xl"
         />
 
         <motion.div
-          animate={{
-            y: [0, 40, 0],
-            x: [0, 30, 0],
-          }}
+          animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-32 right-32 w-96 h-96 bg-gradient-to-tr from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
         />
 
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, -90, 0],
-          }}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
           transition={{ duration: 25, repeat: Infinity }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl"
         />
@@ -231,6 +222,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
 
+      {/* Mobile gradient fade */}
       <div className="lg:hidden absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
     </div>
   );

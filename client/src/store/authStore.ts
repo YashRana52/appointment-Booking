@@ -4,7 +4,6 @@ import {
   postWithoutAuth,
   putWithAuth,
 } from "@/service/httpService";
-
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -44,7 +43,6 @@ export const userAuthStore = create<AuthState>()(
           isAuthenticated: true,
           error: null,
         });
-
         localStorage.setItem("token", token);
       },
 
@@ -63,16 +61,14 @@ export const userAuthStore = create<AuthState>()(
       // Doctor Login
       loginDoctor: async (email, password) => {
         set({ loading: true, error: null });
-
         try {
           const res = await postWithoutAuth("auth/doctor/login", {
             email,
             password,
           });
-
           get().setUser(res.data.user, res.data.token);
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.message || "Login failed" });
           throw err;
         } finally {
           set({ loading: false });
@@ -82,16 +78,14 @@ export const userAuthStore = create<AuthState>()(
       // Patient Login
       loginPatient: async (email, password) => {
         set({ loading: true, error: null });
-
         try {
           const res = await postWithoutAuth("auth/patient/login", {
             email,
             password,
           });
-
           get().setUser(res.data.user, res.data.token);
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.message || "Login failed" });
           throw err;
         } finally {
           set({ loading: false });
@@ -101,12 +95,11 @@ export const userAuthStore = create<AuthState>()(
       // Register Doctor
       registerDoctor: async (data) => {
         set({ loading: true, error: null });
-
         try {
           const res = await postWithoutAuth("auth/doctor/register", data);
           get().setUser(res.data.user, res.data.token);
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.message || "Registration failed" });
           throw err;
         } finally {
           set({ loading: false });
@@ -116,75 +109,60 @@ export const userAuthStore = create<AuthState>()(
       // Register Patient
       registerpatient: async (data) => {
         set({ loading: true, error: null });
-
         try {
           const res = await postWithoutAuth("auth/patient/register", data);
           get().setUser(res.data.user, res.data.token);
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.message || "Registration failed" });
           throw err;
         } finally {
           set({ loading: false });
         }
       },
 
-      // ⭐ Fetch user after refresh (VERY IMPORTANT)
+      // Fetch user after refresh
       fetchProfile: async () => {
         const token = localStorage.getItem("token");
-
         if (!token) {
           set({ user: null, isAuthenticated: false });
           return;
         }
 
         set({ loading: true });
-
         try {
           const storedUser = get().user;
-
           const endpoint =
             storedUser?.type === "doctor" ? "doctor/me" : "patient/me";
-
           const res = await getWithAuth(endpoint);
-
-          set({
-            user: { ...storedUser, ...res.data },
-            isAuthenticated: true,
-          });
-        } catch {
+          set({ user: { ...storedUser, ...res.data }, isAuthenticated: true });
+        } catch (err) {
+          console.error("Fetch profile failed:", err);
           set({ user: null, isAuthenticated: false });
         } finally {
           set({ loading: false });
         }
       },
 
-      // Update onboarding fields
+      // Update onboarding/profile fields
       updateProfile: async (data) => {
         set({ loading: true });
-
         try {
           const user = get().user;
           if (!user) throw new Error("No user found");
-
           const endpoint =
             user.type === "doctor"
               ? "doctor/onboarding/update"
               : "patient/onboarding/update";
-
           const res = await putWithAuth(endpoint, data);
-
-          set({
-            user: { ...user, ...res.data },
-          });
+          set({ user: { ...user, ...res.data } });
         } catch (err: any) {
-          set({ error: err.message });
+          set({ error: err.message || "Update failed" });
           throw err;
         } finally {
           set({ loading: false });
         }
       },
     }),
-
     {
       name: "auth-storage",
       partialize: (state) => ({

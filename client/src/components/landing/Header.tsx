@@ -158,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
                           />
                         ) : (
                           <AvatarFallback className="bg-blue-100 text-blue-600">
-                            {user.name.charAt(0).toUpperCase()}
+                            {user?.name?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         )}
                       </Avatar>
