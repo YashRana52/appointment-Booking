@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://appointment-booking-87ru.vercel.app
+
+# Sitemaps
+Sitemap: https://appointment-booking-87ru.vercel.app/sitemap.xml
