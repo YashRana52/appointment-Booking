@@ -7,7 +7,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (token) {
-      fetchProfile(token);
+      fetchProfile();
     }
   }, [token, fetchProfile]);
 
