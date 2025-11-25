@@ -12,12 +12,12 @@ function LandingHero() {
   const router = useRouter();
 
   const handleBookNow = () => {
-    router.push(isAuthenticated ? "/doctor-list" : "/signup-patient");
+    router.push(isAuthenticated ? "/doctor-list" : "/signup/patient");
   };
 
   const handleCategory = (title: string) => {
     router.push(
-      isAuthenticated ? `/doctor-list?category=${title}` : "/signup-patient"
+      isAuthenticated ? `/doctor-list?category=${title}` : "/signup/patient"
     );
   };
 
