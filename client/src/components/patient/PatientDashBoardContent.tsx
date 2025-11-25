@@ -96,7 +96,7 @@ const PatientDashboardContent = () => {
             <div className="relative">
               <Avatar className="w-24 h-24 ring-4 ring-white shadow-xl">
                 <AvatarImage src={appointment.doctorId?.profileImage} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-4xl font-bold">
                   {appointment.doctorId?.name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
