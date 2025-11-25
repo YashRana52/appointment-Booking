@@ -26,11 +26,9 @@ app.use(morgan("dev"));
 // CORS setup
 app.use(
   cors({
-    origin:
-      (process.env.ALLOWED_ORIGINS || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean) || "*",
+    origin: "https://appointment-booking-g3dg.vercel.app",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
