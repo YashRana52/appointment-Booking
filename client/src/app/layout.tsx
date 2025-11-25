@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MediCare+ - Online Doctor Consultations",
+  title: {
+    default: "Health+ | Online Doctor Consultation",
+    template: "%s | Health+",
+  },
   description:
     "Connect with certified doctors online for quality healthcare. Professional medical consultations from the comfort of your home.",
   keywords: [
@@ -25,7 +28,33 @@ export const metadata: Metadata = {
     "medical advice",
     "teleconsultation",
   ],
-  authors: [{ name: "MediCare+" }],
+  authors: [{ name: "Health+" }],
+  creator: "Health+ Team",
+  publisher: "Health+",
+
+  // Yeh sab favicon wale links yahan daal rahe hain
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+    other: [
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        url: "/icon.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "512x512",
+        url: "/icon-512.png",
+      },
+    ],
+  },
+
+  // PWA ke liye (optional lekin bohot pro lagta hai)
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -35,6 +64,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Extra safety ke liye yeh bhi daal sakte ho */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
