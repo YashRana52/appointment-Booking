@@ -19,7 +19,7 @@ import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import { Separator } from "../ui/separator";
+import { MotionConfig, motion } from "framer-motion";
 
 function DoctorOnboardingForm() {
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -30,11 +30,7 @@ function DoctorOnboardingForm() {
     experience: "",
     fees: "",
     about: "",
-    hospitalInfo: {
-      name: "",
-      address: "",
-      city: "",
-    },
+    hospitalInfo: { name: "", address: "", city: "" },
     availabilityRange: {
       startDate: "",
       endDate: "",
@@ -50,15 +46,12 @@ function DoctorOnboardingForm() {
   const { updateProfile, loading } = userAuthStore();
   const router = useRouter();
 
-  // Handlers
+  // Same logic handlers (unchanged)
   const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -112,426 +105,453 @@ function DoctorOnboardingForm() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto py-10 px-4">
-      <Card className="border border-gray-200 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-        <CardContent className="p-8 space-y-10">
-          {/* Step indicator */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
-                <div
-                  key={step}
-                  className={`flex items-center space-x-2 ${
-                    currentStep >= step ? "text-green-600" : "text-gray-400"
-                  }`}
-                >
-                  <div
-                    className={`h-8 w-8 rounded-full border-2 flex items-center justify-center font-semibold ${
-                      currentStep >= step
-                        ? "bg-green-600 text-white border-green-600"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {step}
-                  </div>
-                  {step < 3 && (
-                    <div className="h-[2px] w-12 bg-gray-200 rounded-full"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+      <div className="w-full max-w-4xl mx-auto">
+        {/* Premium Glass Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Card className="overflow-hidden border-0 shadow-2xl bg-white/80 backdrop-blur-xl rounded-3xl">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-2" />
+
+            <CardContent className="p-8 lg:p-12">
+              {/* Modern Step Progress Bar */}
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-6">
+                  {["Professional Info", "Clinic Details", "Availability"].map(
+                    (label, i) => (
+                      <div key={i} className="flex items-center">
+                        <motion.div
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: currentStep > i ? 1.1 : 1 }}
+                          className={`flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg transition-all duration-500 ${
+                            currentStep > i
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg"
+                              : currentStep === i + 1
+                              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl ring-4 ring-purple-200"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
+                        >
+                          {currentStep > i ? "✓" : i + 1}
+                        </motion.div>
+                        <span className="hidden sm:block ml-3 text-sm font-medium text-gray-600">
+                          {label}
+                        </span>
+                        {i < 2 && (
+                          <div className="w-24 sm:w-32 h-1 mx-4 bg-gray-200 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{
+                                width: currentStep > i + 1 ? "100%" : "0%",
+                              }}
+                              transition={{ duration: 0.6 }}
+                              className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
-              ))}
-            </div>
-            <span className="text-sm text-gray-500">
-              Step {currentStep} of 3
-            </span>
-          </div>
-
-          <Separator />
-
-          {/* Step 1 - Professional Info */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Professional Information
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Provide details about your specialization, qualifications, and
-                expertise.
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label>Medical Specialization</Label>
-                  <Select
-                    value={formData.specialization}
-                    onValueChange={(value: string) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        specialization: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select specialization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {specializations.map((spec) => (
-                        <SelectItem key={spec} value={spec}>
-                          {spec}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Years of Experience</Label>
-                  <Input
-                    name="experience"
-                    type="number"
-                    min={0}
-                    value={formData.experience}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 5"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Healthcare Categories</Label>
-                <p className="text-sm text-gray-500 mb-2">
-                  Select the healthcare areas you provide services for.
+                <p className="text-center text-sm text-gray-500">
+                  Step {currentStep} of 3
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {healthcareCategoriesList.map((category) => (
-                    <div
-                      key={category}
-                      className="flex items-center space-x-2 rounded-md border p-2 hover:bg-gray-50 transition"
-                    >
-                      <Checkbox
-                        id={category}
-                        checked={formData.categories.includes(category)}
-                        onCheckedChange={() => handleCategoryToggle(category)}
-                      />
-                      <label
-                        htmlFor={category}
-                        className="text-sm cursor-pointer"
-                      >
-                        {category}
-                      </label>
-                    </div>
-                  ))}
-                </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label>Qualification</Label>
-                  <Input
-                    name="qualification"
-                    value={formData.qualification}
-                    onChange={handleInputChange}
-                    placeholder="e.g., MBBS, MD"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label>Consultancy Fees (₹)</Label>
-                  <Input
-                    name="fees"
-                    type="number"
-                    min={0}
-                    value={formData.fees}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 500"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>About You</Label>
-                <Textarea
-                  name="about"
-                  value={formData.about}
-                  onChange={handleInputChange}
-                  placeholder="Tell patients about your expertise..."
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Step 2 - Hospital Info */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Hospital / Clinic Information
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Provide accurate details of your practice location.
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <Label>Hospital Name</Label>
-                  <Input
-                    value={formData.hospitalInfo.name}
-                    onChange={(e) => handleHospitalInfo("name", e.target.value)}
-                    placeholder="e.g. Apollo Hospital"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label>Address</Label>
-                  <Textarea
-                    value={formData.hospitalInfo.address}
-                    onChange={(e) =>
-                      handleHospitalInfo("address", e.target.value)
-                    }
-                    placeholder="Enter full address"
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label>City</Label>
-                  <Input
-                    value={formData.hospitalInfo.city}
-                    onChange={(e) => handleHospitalInfo("city", e.target.value)}
-                    placeholder="e.g. Mumbai"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 - Availability */}
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Availability Settings
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Set your availability, appointment slots, and daily working
-                hours.
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label>Available From</Label>
-                  <Input
-                    type="date"
-                    value={formData.availabilityRange.startDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        availabilityRange: {
-                          ...prev.availabilityRange,
-                          startDate: e.target.value,
-                        },
-                      }))
-                    }
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Available Until</Label>
-                  <Input
-                    type="date"
-                    value={formData.availabilityRange.endDate}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        availabilityRange: {
-                          ...prev.availabilityRange,
-                          endDate: e.target.value,
-                        },
-                      }))
-                    }
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Appointment Slot Duration</Label>
-                <Select
-                  value={(formData.slotDurationMinutes ?? 30).toString()}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      slotDurationMinutes: parseInt(value),
-                    }))
-                  }
+              <MotionConfig transition={{ duration: 0.4, ease: "easeOut" }}>
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
                 >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select slot duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[15, 20, 30, 45, 60, 90, 120].map((val) => (
-                      <SelectItem key={val} value={val.toString()}>
-                        {val} minutes
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  {/* Step 1 */}
+                  {currentStep === 1 && (
+                    <div className="space-y-8">
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          Professional Information
+                        </h2>
+                        <p className="text-gray-500 mt-2">
+                          Let patients know your expertise
+                        </p>
+                      </div>
 
-              <div>
-                <Label>Unavailable Days</Label>
-                <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mt-2">
-                  {[
-                    { day: "Sun", value: 0 },
-                    { day: "Mon", value: 1 },
-                    { day: "Tue", value: 2 },
-                    { day: "Wed", value: 3 },
-                    { day: "Thu", value: 4 },
-                    { day: "Fri", value: 5 },
-                    { day: "Sat", value: 6 },
-                  ].map(({ day, value }) => (
-                    <div
-                      key={value}
-                      className="flex items-center space-x-2 border rounded-md p-2 hover:bg-gray-50 transition"
-                    >
-                      <Checkbox
-                        id={`day-${value}`}
-                        checked={formData.availabilityRange.excludedWeekdays.includes(
-                          value
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleExcludedDaysChange(value, checked as boolean)
-                        }
-                      />
-                      <label
-                        htmlFor={`day-${value}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {day}
-                      </label>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="relative">
+                          <Label className="text-gray-700 font-medium">
+                            Specialization
+                          </Label>
+                          <Select
+                            value={formData.specialization}
+                            onValueChange={(v) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                specialization: v,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="mt-2 h-12 bg-gray-50/50 border-gray-200 focus:ring-4 focus:ring-purple-200">
+                              <SelectValue placeholder="Choose specialization" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {specializations.map((spec) => (
+                                <SelectItem key={spec} value={spec}>
+                                  {spec}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label>Years of Experience</Label>
+                          <Input
+                            name="experience"
+                            type="number"
+                            value={formData.experience}
+                            onChange={handleInputChange}
+                            placeholder="e.g. 8"
+                            className="mt-2 h-12 bg-gray-50/50 border-gray-200 focus:ring-4 focus:ring-blue-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Healthcare Categories</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                          {healthcareCategoriesList.map((cat) => (
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              key={cat}
+                              onClick={() => handleCategoryToggle(cat)}
+                              className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                formData.categories.includes(cat)
+                                  ? "border-purple-500 bg-purple-50 shadow-md"
+                                  : "border-gray-200 bg-white hover:border-purple-300"
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Checkbox
+                                  checked={formData.categories.includes(cat)}
+                                />
+                                <span className="font-medium text-gray-700">
+                                  {cat}
+                                </span>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <Label>Qualification</Label>
+                          <Input
+                            name="qualification"
+                            value={formData.qualification}
+                            onChange={handleInputChange}
+                            placeholder="MBBS, MD, etc."
+                            className="mt-2 h-12"
+                          />
+                        </div>
+                        <div>
+                          <Label>Consultation Fees (₹)</Label>
+                          <Input
+                            name="fees"
+                            type="number"
+                            value={formData.fees}
+                            onChange={handleInputChange}
+                            placeholder="800"
+                            className="mt-2 h-12"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>About You</Label>
+                        <Textarea
+                          name="about"
+                          value={formData.about}
+                          onChange={handleInputChange}
+                          placeholder="Share your journey, approach, and passion for healing..."
+                          rows={5}
+                          className="mt-2 resize-none bg-gray-50/50"
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  )}
 
-              <div>
-                <Label>Daily Working Hours</Label>
-                {formData.dailyTimeRanges.map((range, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-4 p-4 border rounded-xl mt-3 bg-gray-50"
-                  >
-                    <div className="flex-1">
-                      <Label>Session {index + 1} - Start</Label>
-                      <Input
-                        type="time"
-                        value={range.start}
-                        onChange={(e) => {
-                          const newRanges = [...formData.dailyTimeRanges];
-                          newRanges[index].start = e.target.value;
-                          setFormData((prev) => ({
-                            ...prev,
-                            dailyTimeRanges: newRanges,
-                          }));
-                        }}
-                      />
+                  {/* Step 2 */}
+                  {currentStep === 2 && (
+                    <div className="space-y-8">
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          Clinic / Hospital Details
+                        </h2>
+                        <p className="text-gray-500 mt-2">
+                          Where patients can meet you
+                        </p>
+                      </div>
+
+                      <div className="space-y-6">
+                        <Input
+                          value={formData.hospitalInfo.name}
+                          onChange={(e) =>
+                            handleHospitalInfo("name", e.target.value)
+                          }
+                          placeholder="Hospital / Clinic Name"
+                          className="h-14 text-lg bg-gray-50/70"
+                        />
+                        <Textarea
+                          value={formData.hospitalInfo.address}
+                          onChange={(e) =>
+                            handleHospitalInfo("address", e.target.value)
+                          }
+                          placeholder="Full address (street, area, landmark)"
+                          rows={3}
+                          className="resize-none"
+                        />
+                        <Input
+                          value={formData.hospitalInfo.city}
+                          onChange={(e) =>
+                            handleHospitalInfo("city", e.target.value)
+                          }
+                          placeholder="City"
+                          className="h-14"
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <Label>Session {index + 1} - End</Label>
-                      <Input
-                        type="time"
-                        value={range.end}
-                        onChange={(e) => {
-                          const newRanges = [...formData.dailyTimeRanges];
-                          newRanges[index].end = e.target.value;
-                          setFormData((prev) => ({
-                            ...prev,
-                            dailyTimeRanges: newRanges,
-                          }));
-                        }}
-                      />
+                  )}
+
+                  {/* Step 3 */}
+                  {currentStep === 3 && (
+                    <div className="space-y-8">
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          Set Your Availability
+                        </h2>
+                        <p className="text-gray-500 mt-2">
+                          Manage your schedule effortlessly
+                        </p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <Label>Available From</Label>
+                          <Input
+                            type="date"
+                            value={formData.availabilityRange.startDate}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                availabilityRange: {
+                                  ...prev.availabilityRange,
+                                  startDate: e.target.value,
+                                },
+                              }))
+                            }
+                            className="mt-2 h-12"
+                          />
+                        </div>
+                        <div>
+                          <Label>Available Until</Label>
+                          <Input
+                            type="date"
+                            value={formData.availabilityRange.endDate}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                availabilityRange: {
+                                  ...prev.availabilityRange,
+                                  endDate: e.target.value,
+                                },
+                              }))
+                            }
+                            className="mt-2 h-12"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Slot Duration</Label>
+                        <Select
+                          value={formData?.slotDurationMinutes?.toString()}
+                          onValueChange={(v) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              slotDurationMinutes: parseInt(v),
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="mt-2 h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[15, 20, 30, 45, 60].map((m) => (
+                              <SelectItem key={m} value={m.toString()}>
+                                {m} minutes
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>Off Days</Label>
+                        <div className="flex flex-wrap gap-3 mt-3">
+                          {[
+                            "Sun",
+                            "Mon",
+                            "Tue",
+                            "Wed",
+                            "Thu",
+                            "Fri",
+                            "Sat",
+                          ].map((day, i) => (
+                            <motion.div
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              key={i}
+                              onClick={() =>
+                                handleExcludedDaysChange(
+                                  i,
+                                  !formData.availabilityRange.excludedWeekdays.includes(
+                                    i
+                                  )
+                                )
+                              }
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold cursor-pointer transition-all ${
+                                formData.availabilityRange.excludedWeekdays.includes(
+                                  i
+                                )
+                                  ? "bg-red-500 text-white shadow-lg"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
+                            >
+                              {day[0]}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Daily Sessions</Label>
+                        {formData.dailyTimeRanges.map((range, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-end gap-4 p-5 mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border"
+                          >
+                            <div className="flex-1">
+                              <Label>Start</Label>
+                              <Input
+                                type="time"
+                                value={range.start}
+                                onChange={(e) => {
+                                  const newR = [...formData.dailyTimeRanges];
+                                  newR[idx].start = e.target.value;
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    dailyTimeRanges: newR,
+                                  }));
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <Label>End</Label>
+                              <Input
+                                type="time"
+                                value={range.end}
+                                onChange={(e) => {
+                                  const newR = [...formData.dailyTimeRanges];
+                                  newR[idx].end = e.target.value;
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    dailyTimeRanges: newR,
+                                  }));
+                                }}
+                              />
+                            </div>
+                            {formData.dailyTimeRanges.length > 1 && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    dailyTimeRanges:
+                                      prev.dailyTimeRanges.filter(
+                                        (_, i) => i !== idx
+                                      ),
+                                  }))
+                                }
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </motion.div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          className="mt-4 border-purple-300 text-purple-600 hover:bg-purple-50"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              dailyTimeRanges: [
+                                ...prev.dailyTimeRanges,
+                                { start: "18:00", end: "21:00" },
+                              ],
+                            }))
+                          }
+                        >
+                          + Add Session
+                        </Button>
+                      </div>
                     </div>
+                  )}
+                </motion.div>
+              </MotionConfig>
 
-                    {formData.dailyTimeRanges.length > 1 && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          const newRanges = formData.dailyTimeRanges.filter(
-                            (_, i) => i !== index
-                          );
-                          setFormData((prev) => ({
-                            ...prev,
-                            dailyTimeRanges: newRanges,
-                          }));
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-
+              {/* Navigation */}
+              <div className="flex justify-between mt-12 pt-8 border-t border-gray-200">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      dailyTimeRanges: [
-                        ...prev.dailyTimeRanges,
-                        { start: "18:00", end: "20:00" },
-                      ],
-                    }))
-                  }
+                  size="lg"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 1}
+                  className="px-8"
                 >
-                  + Add Another Session
+                  Previous
                 </Button>
+
+                {currentStep < 3 ? (
+                  <Button
+                    size="lg"
+                    onClick={handleNext}
+                    className="px-10 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg"
+                  >
+                    Next Step →
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="px-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-xl"
+                  >
+                    {loading ? "Saving Profile..." : "Complete Setup ✓"}
+                  </Button>
+                )}
               </div>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-            >
-              Previous
-            </Button>
-
-            {currentStep < 3 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={currentStep === 1 && formData.categories.length === 0}
-                className="bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Next
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="bg-green-600 text-white hover:bg-green-700"
-              >
-                {loading ? "Completing Setup..." : "Complete Profile"}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }

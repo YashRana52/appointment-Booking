@@ -141,110 +141,115 @@ router.put(
     }
   }
 );
-// doctor dashboard
-router.get("/dashboard", requireRole("doctor"), async (req, res) => {
-  try {
-    const { doctorId } = req.id;
-    const now = new Date();
 
-    //Proper date range calculation
-    const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-      0
-    );
-    const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
-    const doctor = await Doctor.findById(doctorId)
-      .select("-password -googledId")
-      .lean();
-    if (!doctor) {
-      return res.notFound("Doctor not found");
+router.get(
+  "/dashboard",
+  authenticate,
+  requireRole("doctor"),
+  async (req, res) => {
+    try {
+      const doctorId = req.user._id;
+
+      const now = new Date();
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+      );
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999
+      );
+
+      // Doctor details
+      const doctor = await Doctor.findById(doctorId)
+        .select("-password -googledId")
+        .lean();
+      if (!doctor) return res.notFound("Doctor not found");
+
+      // Today's appointments
+      const todayAppointments = await Appointment.find({
+        doctorId,
+        slotStartIso: { $gte: startOfDay, $lte: endOfDay },
+        status: { $ne: "Cancelled" },
+      })
+        .populate("patientId", "name profileImage age email phone")
+        .populate("doctorId", "name fees specialization profileImage")
+        .sort({ slotStartIso: 1 });
+
+      // Upcoming
+      const upcommingAppointments = await Appointment.find({
+        doctorId,
+        slotStartIso: { $gt: endOfDay },
+        status: { $ne: "Cancelled" },
+      })
+        .populate("patientId", "name profileImage age email phone")
+        .limit(5)
+        .sort({ slotStartIso: 1 });
+
+      // Unique patients
+      const uniquePatientIds = await Appointment.distinct("patientId", {
+        doctorId,
+      });
+      const totalPatients = uniquePatientIds.length;
+
+      // Completed appointments count
+      const completedAppointment = await Appointment.countDocuments({
+        doctorId,
+        status: "Completed",
+      });
+
+      // Total revenue (only completed appointments)
+      const completedAppointments = await Appointment.find({
+        doctorId,
+        status: "Completed",
+      }).select("consultationFees totalAmount");
+
+      const totalRevenue = completedAppointments.reduce((sum, apt) => {
+        return (
+          sum + (apt.totalAmount || apt.consultationFees || doctor.fees || 0)
+        );
+      }, 0);
+
+      // Final response
+      res.ok(
+        {
+          user: {
+            name: doctor.name,
+            fees: doctor.fees,
+            profileImage: doctor.profileImage,
+            specialization: doctor.specialization,
+            hospitalInfo: doctor.hospitalInfo,
+          },
+          stats: {
+            totalPatients,
+            todayAppointments: todayAppointments.length,
+            totalRevenue,
+            completedAppointments: completedAppointment,
+          },
+          todayAppointments,
+          upcommingAppointments,
+          performance: {
+            patientSatisfaction: 4.8,
+            completionRate: Math.round(
+              (completedAppointment / (completedAppointment + 10)) * 100
+            ),
+            responseTime: "<5min",
+          },
+        },
+        "Dashboard data retrieved successfully"
+      );
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      res.serverError("Failed to fetch dashboard data", error.message);
     }
-
-    // todays appointments with full populations
-    const todayAppointments = await Appointment.find({
-      doctorId,
-      slotStartIso: { $gte: startOfDay, $lte: endOfDay },
-      status: { $ne: "Cancelled" },
-    })
-      .populate("patientId", "name profileImage age email phone")
-      .populate("doctorId", "name fees specialization profileImage")
-      .sort({ slotStartIso: 1 });
-
-    // upcoming appointments with full populations
-    const upcommingAppointments = await Appointment.find({
-      doctorId,
-      slotStartIso: { $gt: endOfDay },
-      status: "Scheduled",
-    })
-      .populate("patientId", "name profileImage age email phone")
-      .populate("doctorId", "name fees specialization profileImage")
-      .sort({ slotStartIso: 1 })
-      .limit(5);
-
-    //unic patient
-
-    const uniquePatientIds = await Appointment.distinct("patientId", {
-      doctorId,
-    });
-    const totalPatients = uniquePatientIds.length;
-
-    const completedAppointment = await Appointment.countDocuments({
-      doctorId,
-      status: "Completed",
-    });
-
-    const totalAppointment = await Appointment.find({
-      doctorId,
-      status: "Completed",
-    });
-
-    const totalRevenue = totalAppointment.reduce(
-      (sum, apt) => sum + (apt.fees || doctor.fees || 0),
-      0
-    );
-
-    const dashboardData = {
-      user: {
-        name: doctor.name,
-        fees: doctor.fees,
-        profileImage: doctor.profileImage,
-        specialization: doctor.specialization,
-        hospitalInfo: doctor.hospitalInfo,
-      },
-      stats: {
-        totalPatients,
-        totalAppointment: totalAppointment.length,
-        totalRevenue,
-        completedAppointment,
-        averageRating: 4.6,
-      },
-      totalAppointment,
-      upcommingAppointments,
-      performance: {
-        patientSatisfaction: 4.6,
-        completionRate: 95,
-        responseTime: "<2min",
-      },
-    };
-    res.ok(dashboardData, "Dashboard data retrive");
-  } catch (error) {
-    res.serverError("fetching dashboard data failed", [error.message]);
   }
-});
-
+);
 //get doctor by id
 router.get("/:doctorId", validate, async (req, res) => {
   try {

@@ -2,22 +2,35 @@
 import DoctorProfile from "@/components/BookingSteps/DoctorProfile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { useAppointmentStore } from "@/store/appointmentStore";
-import { useDoctorStore } from "@/store/doctorStore";
-import { ArrowLeft, Check } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  Video,
+  Phone,
+  Calendar,
+  CreditCard,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-
-import ConsultationStep from "@/components/BookingSteps/ConsultationStep";
-
-import { convertTo24Hour, minutesToTime, toLocalYMD } from "@/lib/dateUtills";
-import PayementStep from "@/components/BookingSteps/PaymentStep";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAppointmentStore } from "@/store/appointmentStore";
+import { useDoctorStore } from "@/store/doctorStore";
 import CalenderStep from "@/components/BookingSteps/CalenderStep";
+import ConsultationStep from "@/components/BookingSteps/ConsultationStep";
+import PayementStep from "@/components/BookingSteps/PaymentStep";
+import { toLocalYMD, convertTo24Hour, minutesToTime } from "@/lib/dateUtills";
 
-const page = () => {
+const steps = [
+  { id: 1, name: "Select Slot", icon: Calendar },
+  { id: 2, name: "Patient Details", icon: Clock },
+  { id: 3, name: "Payment", icon: CreditCard },
+];
+
+const BookingPage = () => {
   const params = useParams();
   const router = useRouter();
   const doctorId = params.doctorId as string;
@@ -26,7 +39,6 @@ const page = () => {
   const { bookAppointment, loading, fetchBookedSlots, bookedSlots } =
     useAppointmentStore();
 
-  ///state
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -39,248 +51,265 @@ const page = () => {
   const [createdAppointmentId, setCreatedAppointmentId] = useState<
     string | null
   >(null);
-  const [patientName, setPatientName] = useState<string>("");
+  const [patientName, setPatientName] = useState("");
 
   useEffect(() => {
-    if (doctorId) {
-      fetchDoctorById(doctorId);
-    }
-  }, [doctorId, fetchDoctorById]);
+    if (doctorId) fetchDoctorById(doctorId);
+  }, [doctorId]);
 
   useEffect(() => {
     if (selectedDate && doctorId) {
-      const dateString = toLocalYMD(selectedDate);
-      fetchBookedSlots(doctorId, dateString);
+      fetchBookedSlots(doctorId, toLocalYMD(selectedDate));
     }
-  }, [selectedDate, doctorId, fetchBookedSlots]);
+  }, [selectedDate, doctorId]);
 
-  //Generate avaiable dates
+  // Generate available dates
   useEffect(() => {
-    if (currentDoctor?.availabilityRange) {
-      const startDate = new Date(currentDoctor?.availabilityRange.startDate);
-      //Convert doctor's start date string into a Date Object
+    if (!currentDoctor?.availabilityRange) return;
+    const { startDate, endDate } = currentDoctor.availabilityRange;
+    const start = new Date(
+      Math.max(new Date().setHours(0, 0, 0, 0), new Date(startDate).getTime())
+    );
+    const end = new Date(endDate);
+    const dates: string[] = [];
 
-      const endDate = new Date(currentDoctor?.availabilityRange.endDate);
-      //Convert doctor's end date string into a Date Object
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      //get today's date and reset time to midnight
-
-      const dates: string[] = [];
-      //Empty list to hold avaiable dates
-
-      const iterationStart = new Date(
-        Math.max(today.getTime(), startDate.getTime())
-      );
-
-      for (
-        let d = new Date(iterationStart);
-        d <= endDate && dates.length < 90;
-        d.setDate(d.getDate() + 1)
-      ) {
-        dates.push(toLocalYMD(d));
-        //Convert date into YYYY-MM-DD format and add to list
-      }
-
-      setAvailableDates(dates);
+    for (
+      let d = new Date(start);
+      d <= end && dates.length < 90;
+      d.setDate(d.getDate() + 1)
+    ) {
+      dates.push(toLocalYMD(d));
     }
+    setAvailableDates(dates);
   }, [currentDoctor]);
 
-  //Generate avaiable slots
+  // Generate slots
   useEffect(() => {
-    if (selectedDate && currentDoctor?.dailyTimeRanges) {
-      const slots: string[] = [];
-      //Empty list to hold avaiable dates
+    if (!selectedDate || !currentDoctor?.dailyTimeRanges) return;
+    const slotDuration = currentDoctor.slotDurationMinutes || 30;
+    const slots: string[] = [];
 
-      const slotDuration = currentDoctor?.slotDurationMinutes || 30;
+    currentDoctor.dailyTimeRanges.forEach((range: any) => {
+      const startMins = timeToMinutes(range.start);
+      const endMins = timeToMinutes(range.end);
 
-      currentDoctor.dailyTimeRanges.forEach((timeRange: any) => {
-        const startMintues = timeToMinutes(timeRange.start);
-        //Convert start time (e.g, "12:00") => total mintues (e.g., 540)
-
-        const endMintues = timeToMinutes(timeRange.end);
-        //Convert end time (e.g, "3:00") => total mintues (e.g., 740)
-
-        for (
-          let mintues = startMintues;
-          mintues < endMintues;
-          mintues += slotDuration
-        ) {
-          slots.push(minutesToTime(mintues));
-
-          //Convert mintues back to HH:MM format and add to slots
-        }
-      });
-
-      setAvailableSlots(slots);
-    }
+      for (let m = startMins; m < endMins; m += slotDuration) {
+        slots.push(minutesToTime(m));
+      }
+    });
+    setAvailableSlots(slots);
   }, [selectedDate, currentDoctor]);
 
-  const timeToMinutes = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return hours * 60 + minutes;
+  const timeToMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
   };
 
   const handleBooking = async () => {
-    if (!selectedDate || !selectedSlot || !symptoms.trim()) {
-      alert("please complete all required fields");
-      return;
-    }
+    if (!selectedDate || !selectedSlot || symptoms.trim().length === 0)
+      return alert("Fill all fields");
 
     setIsPaymentProcessing(true);
-    try {
-      const dateString = toLocalYMD(selectedDate);
-      const slotStart = new Date(
-        `${dateString}T${convertTo24Hour(selectedSlot)}`
-      );
-      const slotEnd = new Date(
-        slotStart.getTime() + (currentDoctor!.slotDurationMinutes || 30) * 60000
-      );
-      const consultationFees = getConsultationPrice();
-      const platformFees = Math.round(consultationFees * 0.1);
-      const totalAmount = consultationFees + platformFees;
+    const dateStr = toLocalYMD(selectedDate);
+    const start = new Date(`${dateStr}T${convertTo24Hour(selectedSlot)}`);
+    const end = new Date(
+      start.getTime() + (currentDoctor!.slotDurationMinutes || 30) * 60000
+    );
 
+    const baseFee = currentDoctor!.fees || 0;
+    const fee = consultationType === "Voice Call" ? baseFee - 100 : baseFee;
+    const platformFee = Math.round(fee * 0.1);
+    const total = fee + platformFee;
+
+    try {
       const appointment = await bookAppointment({
-        doctorId: doctorId,
-        slotStartIso: slotStart.toISOString(),
-        slotEndIso: slotEnd.toISOString(),
+        doctorId,
+        slotStartIso: start.toISOString(),
+        slotEndIso: end.toISOString(),
         consultationType,
         symptoms,
-        date: dateString,
-        consultationFees,
-        platformFees,
-        totalAmount,
+        date: dateStr,
+        consultationFees: fee,
+        platformFees: platformFee,
+        totalAmount: total,
       });
 
-      //store appointemnt Id and patinet name for paymnet
-      if (appointment && appointment?._id) {
+      if (appointment?._id) {
         setCreatedAppointmentId(appointment._id);
-        setPatientName(appointment.patientId.name || "Patient");
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        router.push("/patient/dashboard");
+        setPatientName(appointment.patientId?.name || "You");
       }
-    } catch (error: any) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setIsPaymentProcessing(false);
     }
   };
 
-  const getConsultationPrice = (): number => {
-    const basePrice = currentDoctor?.fees || 0;
-    const typePrice = consultationType === "Voice Call" ? -100 : 0;
-    return Math.max(0, basePrice + typePrice);
-  };
-
-  const handlePaymentSuccess = (appointment: any) => {
-    router.push("/patient/dashboard");
-  };
+  const progress = (currentStep / 3) * 100;
 
   if (!currentDoctor) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading doctor information...</p>
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-lg text-gray-700">Loading doctor profile...</p>
         </div>
       </div>
     );
   }
 
-  console.log("this is my current doctor", currentDoctor);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-lg border-b sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/doctor-list">
-                <Button variant="ghost" size="sm" className="text-gray-600">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Doctors
-                </Button>
-              </Link>
-              <div className="h-6 w-px bg-gray-200"></div>
-              <div>
-                <h1 className="text-sm md:text-2xl font-bold text-gray-900">
-                  Book Appointment
-                </h1>
-                <p className="text-xs md:text-sm text-gray-600">
-                  with {currentDoctor.name}
-                </p>
-              </div>
-            </div>
-
-            {/* Process Indicator */}
-
-            <div className="hidden md:flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
-                <React.Fragment key={step}>
-                  <div
-                    className={`flex items-center space-x-2 ${
-                      currentStep >= step ? "text-blue-600" : "text-gray-400"
-                    }`}
-                  >
+            <Link
+              href="/doctor-list"
+              className="flex items-center text-gray-700 hover:text-blue-600 transition"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              <span className="font-medium">Back to Doctors</span>
+            </Link>
+            <div className="flex-1 max-w-2xl mx-auto">
+              <div className="flex items-center justify-between mb-3">
+                {steps.map((step, i) => (
+                  <div key={step.id} className="flex items-center">
                     <div
-                      className={`w-8 h-8 rounded-full border-2 ${
-                        currentStep >= step
-                          ? "bg-blue-600 border-blue-600 "
-                          : "border-gray-200"
-                      } flex items-center justify-center`}
+                      className={`flex items-center ${
+                        currentStep >= step.id
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                      }`}
                     >
-                      {currentStep > step ? (
-                        <Check className="w-4 h-4 text-white" />
-                      ) : (
-                        <span className="text-sm font-semibold text-white">
-                          {step}
-                        </span>
-                      )}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all
+                        ${
+                          currentStep > step.id
+                            ? "bg-green-500 text-white"
+                            : currentStep === step.id
+                            ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                            : "bg-gray-200 text-gray-500"
+                        }`}
+                      >
+                        {currentStep > step.id ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : (
+                          step.id
+                        )}
+                      </div>
+                      <span className="ml-3 font-medium hidden sm:block">
+                        {step.name}
+                      </span>
                     </div>
-
-                    <span className="text-sm font-medium">
-                      {step === 1
-                        ? "Select Time"
-                        : step === 2
-                        ? "Deatils"
-                        : "Payment"}
-                    </span>
+                    {i < steps.length - 1 && (
+                      <div
+                        className={`w-24 h-1 mx-4 ${
+                          currentStep > step.id + 1
+                            ? "bg-green-500"
+                            : currentStep > step.id
+                            ? "bg-blue-600"
+                            : "bg-gray-300"
+                        }`}
+                      />
+                    )}
                   </div>
-                  {step < 3 && <div className="w-12 h-px bg-gray-300"></div>}
-                </React.Fragment>
-              ))}
+                ))}
+              </div>
+              <Progress value={progress} className="h-2" />
             </div>
+            <div className="w-24" /> {/* Spacer */}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <DoctorProfile doctor={currentDoctor} />
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left: Doctor Card (Sticky) */}
+          <div className="lg:col-span-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="sticky top-28"
+            >
+              <Card className="overflow-hidden shadow-xl border-0 bg-white/90 backdrop-blur">
+                <div className="h-32 bg-gradient-to-r from-blue-600 to-cyan-600" />
+                <div className="relative px-8 pt-0 pb-8 -mt-16">
+                  <DoctorProfile doctor={currentDoctor} />
+
+                  <div className="mt-6 space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        {consultationType === "Video Consultation" ? (
+                          <Video className="w-6 h-6 text-blue-600" />
+                        ) : (
+                          <Phone className="w-6 h-6 text-green-600" />
+                        )}
+                        <span className="font-semibold">
+                          {consultationType}
+                        </span>
+                      </div>
+                      <Badge variant="secondary" className="bg-white">
+                        {consultationType === "Voice Call"
+                          ? "₹100 less"
+                          : "Most Popular"}
+                      </Badge>
+                    </div>
+
+                    {selectedDate && selectedSlot && (
+                      <div className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-200">
+                        <p className="text-sm text-gray-600 mb-2">
+                          Your Appointment
+                        </p>
+                        <p className="font-bold text-lg text-gray-900">
+                          {new Date(selectedDate).toLocaleDateString("en-IN", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                          })}
+                        </p>
+                        <p className="text-2xl font-bold text-green-600 mt-1">
+                          {selectedSlot}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
           </div>
 
-          <div className="lg:col-span-2">
-            <Card className="shadow-lg border-0">
-              <CardContent className="p-8">
+          {/* Right: Steps */}
+          <div className="lg:col-span-8">
+            <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl">
+              <CardContent className="p-10">
                 <AnimatePresence mode="wait">
                   {currentStep === 1 && (
                     <motion.div
-                      key="step1"
-                      initial={{ opacity: 0, x: 20 }}
+                      key="calendar"
+                      initial={{ opacity: 0, x: 50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     >
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                        Choose Date & Time
+                      </h2>
+                      <p className="text-gray-600 mb-8">
+                        Select a convenient slot for your consultation
+                      </p>
                       <CalenderStep
                         selectedDate={selectedDate}
                         setSelectedDate={setSelectedDate}
                         selectedSlot={selectedSlot}
                         setSelectedSlot={setSelectedSlot}
-                        availableSlots={availableSlots}
                         availableDates={availableDates}
+                        availableSlots={availableSlots}
                         excludedWeekdays={
-                          currentDoctor?.availabilityRange?.excludedWeekdays ||
+                          currentDoctor.availabilityRange?.excludedWeekdays ||
                           []
                         }
                         bookedSlots={bookedSlots}
@@ -291,17 +320,23 @@ const page = () => {
 
                   {currentStep === 2 && (
                     <motion.div
-                      key="step2"
-                      initial={{ opacity: 0, x: 20 }}
+                      key="details"
+                      initial={{ opacity: 0, x: 50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      exit={{ opacity: 0, x: -50 }}
                     >
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                        Tell us about your concern
+                      </h2>
+                      <p className="text-gray-600 mb-8">
+                        This helps the doctor prepare better
+                      </p>
                       <ConsultationStep
                         consultationType={consultationType}
                         setConsultationType={setConsultationType}
-                        setSymptoms={setSymptoms}
                         symptoms={symptoms}
-                        doctorFees={currentDoctor?.fees}
+                        setSymptoms={setSymptoms}
+                        doctorFees={currentDoctor.fees}
                         onBack={() => setCurrentStep(1)}
                         onContinue={() => setCurrentStep(3)}
                       />
@@ -310,25 +345,37 @@ const page = () => {
 
                   {currentStep === 3 && (
                     <motion.div
-                      key="step3"
-                      initial={{ opacity: 0, x: 20 }}
+                      key="payment"
+                      initial={{ opacity: 0, x: 50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      exit={{ opacity: 0, x: -50 }}
                     >
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                        Review & Pay
+                      </h2>
+                      <p className="text-gray-600 mb-8">
+                        Complete your booking securely
+                      </p>
                       <PayementStep
                         selectedDate={selectedDate}
                         selectedSlot={selectedSlot}
                         consultationType={consultationType}
                         doctorName={currentDoctor.name}
                         slotDuration={currentDoctor.slotDurationMinutes}
-                        consultationFee={getConsultationPrice()}
+                        consultationFee={
+                          consultationType === "Voice Call"
+                            ? currentDoctor.fees - 100
+                            : currentDoctor.fees
+                        }
                         isProcessing={isPaymentProcessing}
                         onBack={() => setCurrentStep(2)}
                         onConfirm={handleBooking}
-                        onPaymentSuccess={handlePaymentSuccess}
+                        onPaymentSuccess={() =>
+                          router.push("/patient/dashboard")
+                        }
                         loading={loading}
                         appointmentId={createdAppointmentId || undefined}
-                        patientName={patientName || undefined}
+                        patientName={patientName}
                       />
                     </motion.div>
                   )}
@@ -342,4 +389,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default BookingPage;

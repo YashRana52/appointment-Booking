@@ -1,4 +1,4 @@
-import { Stethoscope } from "lucide-react";
+import { HeartPlus, Stethoscope } from "lucide-react";
 import Link from "next/link";
 
 const Footer = () => {
@@ -164,9 +164,12 @@ const Footer = () => {
         <div className="flex flex-col gap-4 max-w-sm">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
+              <HeartPlus className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-blue-700">Medicare+</span>
+            <span className="text-2xl font-bold text-blue-700">
+              {" "}
+              HealthPlus+
+            </span>
           </Link>
           <p className="text-sm">
             Your trusted platform for online doctor consultations, health

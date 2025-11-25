@@ -9,13 +9,13 @@ export const healthcareCategories = [
   },
   {
     id: "manage-condition",
-    title: "Manage Your Condition",
+    title: "Manage Condition",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     color: "bg-green-500",
   },
   {
     id: "mental-behavioral-health",
-    title: "Mental & Behavioral Health",
+    title: "Mental  Health",
     icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z",
     color: "bg-yellow-500",
   },

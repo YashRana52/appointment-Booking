@@ -4,7 +4,7 @@ import { useDoctorStore } from "@/store/doctorStore";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Header from "../landing/Header";
-import { FilterIcon, MapPin, Search, SearchIcon, Star, X } from "lucide-react";
+import { Filter, MapPin, Search, Star, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -19,10 +19,11 @@ import {
 } from "../ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 function DoctorListPage() {
-  const searchparams = useSearchParams();
-  const categoryParams = searchparams.get("category");
+  const searchParams = useSearchParams();
+  const categoryParams = searchParams.get("category");
 
   const { doctors, loading, fetchDoctors } = useDoctorStore();
 
@@ -37,13 +38,15 @@ function DoctorListPage() {
 
   const [showFilters, setShowFilters] = useState(false);
 
+  // Convert "all" to empty string
+  const handleFilterChange = (key: keyof DoctorFilters, value: string) => {
+    const newValue = value === "all" ? "" : value;
+    setFilters((prev) => ({ ...prev, [key]: newValue }));
+  };
+
   useEffect(() => {
     fetchDoctors(filters);
   }, [filters]);
-
-  const handleFilterChange = (key: keyof DoctorFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
 
   const clearFilters = () => {
     setFilters({
@@ -57,82 +60,85 @@ function DoctorListPage() {
   };
 
   const activeFilterCount = Object.values(filters).filter(
-    (value) => value && value !== "experience" && value !== "desc"
+    (v) => v && !["experience", "desc"].includes(v as string)
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <Header />
 
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Choose your doctor
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                Find the perfect healthcare provider for your needs
-              </p>
-            </div>
-          </div>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-16 text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-bold mb-4"
+          >
+            Find Your Perfect Doctor
+          </motion.h1>
+          <p className="text-lg opacity-90">
+            Book trusted healthcare professionals in minutes
+          </p>
+        </div>
+      </div>
 
-          {/*  Search Bar */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Search doctors by name, specialization, or condition..."
-                className="pl-10 h-12 text-base"
-                value={filters.search || ""}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
-              />
-            </div>
-            <Button
-              variant={"outline"}
-              className="h-12 px-4"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FilterIcon className="w-4 h-4 mr-2" />
-              Filters
-              {activeFilterCount > 0 && (
-                <Badge
-                  variant={"secondary"}
-                  className="ml-2 bg-blue-300 text-blue-800"
-                >
-                  {activeFilterCount}
-                </Badge>
-              )}
-            </Button>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
+        {/* Search & Filter Bar */}
+        <Card className="shadow-2xl border-0 backdrop-blur-xl bg-white/95">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Search by name, specialty, or condition..."
+                  className="pl-12 h-14 text-lg border-0 bg-gray-50/70 focus:bg-white transition-all rounded-2xl shadow-inner"
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                />
+              </div>
 
-          {/* List of health category */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Browse by Category
-            </h3>
-            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-14 px-8 rounded-2xl border-2 font-medium"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="w-5 h-5 mr-2" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <Badge className="ml-2 bg-blue-600 text-white">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+
+            {/* Category Pills */}
+            <div className="mt-6 flex flex-wrap gap-3">
               <Button
                 variant={!filters.category ? "default" : "outline"}
-                className="flex shrink-0 rounded-full"
-                onClick={() => handleFilterChange("category", "")}
+                size="sm"
+                className="rounded-full font-medium"
+                onClick={() => handleFilterChange("category", "all")}
               >
-                All categories
+                All
               </Button>
               {healthcareCategories.map((cat) => (
                 <Button
+                  key={cat.id}
                   variant={
                     filters.category === cat.title ? "default" : "outline"
                   }
-                  key={cat.id}
-                  className="flex shrink-0 rounded-full whitespace-nowrap"
+                  size="sm"
+                  className="rounded-full font-medium flex items-center gap-2"
                   onClick={() => handleFilterChange("category", cat.title)}
                 >
                   <div
-                    className={`w-6 h-6 ${cat.color} rounded-2xl flex items-center justify-center group-hover:shadow-xl transition-all duration-200`}
+                    className={`w-8 h-8 ${cat.color} rounded-full flex items-center justify-center`}
                   >
                     <svg
-                      className="h-6 w-6 text-white "
+                      className="w-5 h-5 text-white"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -143,225 +149,252 @@ function DoctorListPage() {
                 </Button>
               ))}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
+        {/* Advanced Filters */}
+        <AnimatePresence>
           {showFilters && (
-            <Card className="p-4 mb-4 bg-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Advanced Filters</h3>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  onClick={() => setShowFilters(false)}
-                >
-                  <X />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Specialization
-                  </label>
-                  <Select
-                    value={filters.specialization || ""}
-                    onValueChange={(value) =>
-                      handleFilterChange("specialization", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All specializations"></SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all"> All Specializations</SelectItem>
-                      {specializations.map((spec) => (
-                        <SelectItem key={spec} value={spec}>
-                          {spec}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Location
-                  </label>
-                  <Select
-                    value={filters.city || ""}
-                    onValueChange={(value) => handleFilterChange("city", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All locations"></SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all"> All locations</SelectItem>
-                      {cities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Sort by
-                  </label>
-                  <Select
-                    value={filters.sortBy || ""}
-                    onValueChange={(value) =>
-                      handleFilterChange("sortBy", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="experience"> Experience</SelectItem>
-                      <SelectItem value="fees"> Consultation Fee</SelectItem>
-                      <SelectItem value="name"> Name (A-Z)</SelectItem>
-                      <SelectItem value="createdAt"> Newest First</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end">
-                  <Button variant={"outline"} onClick={clearFilters}>
-                    Clear All Filters
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-4 text-sm text-gray-600">
-          {loading ? "Searching..." : `${doctors.length} doctor found`}
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="animate-pulse">
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="mt-6 shadow-xl border-0 backdrop-blur bg-white/90">
                 <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto"></div>
-                    <div className="space-y-2">
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                      <div className="h-10 bg-gray-200 rounded "></div>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Refine Your Search
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowFilters(false)}
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    {/* Specialization */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Specialization
+                      </label>
+                      <Select
+                        value={filters.specialization || "all"}
+                        onValueChange={(v) =>
+                          handleFilterChange("specialization", v)
+                        }
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="All Specializations" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">
+                            All Specializations
+                          </SelectItem>
+                          {specializations.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* City */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        City
+                      </label>
+                      <Select
+                        value={filters.city || "all"}
+                        onValueChange={(v) => handleFilterChange("city", v)}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="All Cities" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cities</SelectItem>
+                          {cities.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sort By */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Sort By
+                      </label>
+                      <Select
+                        value={filters.sortBy}
+                        onValueChange={(v) => handleFilterChange("sortBy", v)}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="experience">Experience</SelectItem>
+                          <SelectItem value="fees">Consultation Fee</SelectItem>
+                          <SelectItem value="name">Name A-Z</SelectItem>
+                          <SelectItem value="createdAt">
+                            Newest First
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Clear */}
+                    <div className="flex items-end">
+                      <Button
+                        variant="outline"
+                        className="w-full h-12"
+                        onClick={clearFilters}
+                      >
+                        Clear All
+                      </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Results */}
+        <div className="mt-10 mb-6 flex justify-between items-center">
+          <p className="text-gray-600 font-medium">
+            {loading
+              ? "Searching doctors..."
+              : `${doctors.length} doctor${
+                  doctors.length !== 1 ? "s" : ""
+                } found`}
+          </p>
+        </div>
+
+        {/* Doctor Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-full w-24 h-24 mx-auto mb-4" />
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : doctors.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {doctors.map((doctor) => (
-              <Card
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7"
+          >
+            {doctors.map((doctor, idx) => (
+              <motion.div
                 key={doctor._id}
-                className="hover:shadow-xl transition-all duration-300 bg-white border-0 shadow-md h-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
               >
-                <CardContent className="p-6 flex flex-col h-full">
-                  <div className="text-center mb-4">
-                    <Avatar className="w-20 h-20 mx-auto mb-3">
-                      <AvatarImage
-                        src={doctor.profileImage}
-                        alt={doctor.name}
-                        className="object-cover"
-                      />
+                <Card className="group hover:shadow-2xl transition-all duration-500 border-0 overflow-hidden bg-white/80 backdrop-blur">
+                  <CardContent className="p-6 text-center">
+                    <div className="relative mb-5">
+                      <Avatar className="w-28 h-28 mx-auto ring-4 ring-blue-100 group-hover:ring-blue-200 transition-all">
+                        <AvatarImage
+                          src={doctor.profileImage}
+                          alt={doctor.name}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-2xl font-bold">
+                          {doctor.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute top-1 right-1 bg-green-500 w-4 h-4 rounded-full ring-4 ring-white" />
+                    </div>
 
-                      <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 text-xl">
-                        {doctor.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-lg font-bold text-blue-700 mb-1">
+                    <h3 className="text-xl font-bold text-gray-900">
                       {doctor.name}
                     </h3>
-                    <p className="text-gray-600 text-sm mb-1">
+                    <p className="text-sm text-blue-600 font-medium mt-1">
                       {doctor.specialization}
                     </p>
-                    <p className="text-gray-200 text-xs mb-1">
-                      {doctor.experience} year experience
+                    <p className="text-xs text-gray-500 mt-1">
+                      {doctor.experience}+ years experience
                     </p>
-                    <div className="flex items-center justify-center space-x-1 mb-3">
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className="w-4 h-4 fill-orange-400 text-orange-400"
-                          />
-                        ))}
-                      </div>
+
+                    <div className="flex justify-center my-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                      <span className="ml-2 text-sm font-medium text-gray-700">
+                        5.0
+                      </span>
                     </div>
-                    <div className="flex flex-wrap gap-1 justify-center mb-4">
-                      {doctor.category?.slice(0, 2).map((category, idx) => (
+
+                    <div className="flex flex-wrap justify-center gap-2 my-4">
+                      {doctor.category?.slice(0, 2).map((cat, i) => (
                         <Badge
-                          key={idx}
-                          variant={"secondary"}
-                          className="bg-blue-50 text-blue-700 border-blue-200 text-xs "
+                          key={i}
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-700"
                         >
-                          {category}
+                          {cat}
                         </Badge>
                       ))}
-                      <Badge
-                        variant={"secondary"}
-                        className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs "
-                      >
-                        <Star className="w-3 h-3 mr-1" />
-                        Popular
+                      <Badge className="bg-gradient-to-r from-orange-400 to-pink-400 text-white">
+                        <Star className="w-3 h-3 mr-1" /> Popular
                       </Badge>
                     </div>
-                    <div className="space-y-2 mb-4 text-center">
+
+                    <div className="space-y-3 text-sm">
                       <div className="flex items-center justify-center text-gray-600">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        <span className="text-sm">
-                          {doctor.hospitalInfo.city}
+                        <MapPin className="w-4 h-4 mr-1 text-blue-500" />
+                        {doctor.hospitalInfo.city}
+                      </div>
+                      <div className="text-lg font-bold text-green-600">
+                        ₹{doctor.fees}
+                        <span className="text-xs font-normal text-gray-500 ml-1">
+                          / consultation
                         </span>
                       </div>
-                      <div className="flex justify-center items-center gap-2 text-center">
-                        <p className="text-gray-600 text-md font-semibold">
-                          Consultation Fee:
-                        </p>
-
-                        <p className="font-bold text-green-600 text-lg">
-                          ₹{doctor.fees}
-                        </p>
-                      </div>
                     </div>
 
-                    <div className="mt-auto ">
-                      <Link
-                        href={`/patient/booking/${doctor._id}`}
-                        className="block"
-                      >
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm shadow-lg hover:shadow-xl transition-all">
-                          Book Appointment
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Link
+                      href={`/patient/booking/${doctor._id}`}
+                      className="block mt-6"
+                    >
+                      <Button className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        Book Now
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <>
-            <Card className="p-12 text-center">
-              <div className="text-gray-400 mb-4">
-                <Search className="w-16 h-16 mx-auto" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                  No doctors found
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Try to adjusting your filters or search criteria
-                </p>
-                <Button onClick={clearFilters}>Clear filters</Button>
-              </div>
-            </Card>
-          </>
+          <Card className="p-16 text-center bg-white/70 backdrop-blur">
+            <Search className="w-20 h-20 mx-auto text-gray-300 mb-6" />
+            <h3 className="text-2xl font-bold text-gray-700 mb-3">
+              No doctors found
+            </h3>
+            <p className="text-gray-500 mb-8">
+              Try adjusting your filters or search term
+            </p>
+            <Button size="lg" onClick={clearFilters}>
+              Clear All Filters
+            </Button>
+          </Card>
         )}
       </div>
     </div>

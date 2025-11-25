@@ -1,11 +1,20 @@
 "use client";
 
-import { Bell, Calendar, Settings, Stethoscope, User } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  HeartPulse,
+  Settings,
+  Stethoscope,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { useRouter } from "next/navigation";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
   const { user, isAuthenticated } = userAuthStore();
 
   const pathname = usePathname();
+  const router = useRouter();
 
   const getDashboardNavigation = (): NavigationItem[] => {
     if (!user || !showDashBoardNav) return [];
@@ -70,10 +80,10 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-            <Stethoscope className="w-6 h-6 text-white" />
+            <HeartPulse className="w-6 h-6 text-white" />
           </div>
           <div className="text-2xl font-bold bg-gradient-to-br from-blue-600 to-blue-800 bg-clip-text text-transparent">
-            Medicare+
+            HealthPlus+
           </div>
         </Link>
 
@@ -173,7 +183,7 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem asChild>
+                  {/* <DropdownMenuItem asChild>
                     <Link
                       href={`/${user.type}/settings`}
                       className="flex items-center space-x-2 hover:bg-gray-100 rounded-md p-2 transition"
@@ -181,15 +191,16 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
                       <Settings className="w-4 h-4" />
                       <span>Settings</span>
                     </Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem
-                    className="flex items-center space-x-2 hover:bg-red-50 hover:text-red-600 rounded-md p-2 cursor-pointer transition"
                     onSelect={() => {
                       userAuthStore.getState().logout();
+                      router.push("/"); // redirect to home
                     }}
+                    className="flex items-center space-x-2 hover:bg-red-50 hover:text-red-600 rounded-md p-2 cursor-pointer transition"
                   >
                     <User className="w-4 h-4 text-red-500" />
                     <span>Logout</span>
