@@ -21,21 +21,10 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAuthenticated, user } = userAuthStore();
   const router = useRouter();
-
   const [loadingRedirect, setLoadingRedirect] = useState(false);
-  const [userLoaded, setUserLoaded] = useState(false);
 
-  // ✅ Wait until user is loaded from store
+  // Redirect With Loader
   useEffect(() => {
-    if (user !== null || !isAuthenticated) {
-      setUserLoaded(true);
-    }
-  }, [user, isAuthenticated]);
-
-  // ✅ Redirect Logic (runs only when user is fully loaded)
-  useEffect(() => {
-    if (!userLoaded) return;
-
     if (isAuthenticated && user) {
       setLoadingRedirect(true);
 
@@ -47,15 +36,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
           );
         }
-      }, 800); // shorter delay for smoother UX
+      }, 1500);
     }
-  }, [isAuthenticated, userLoaded, user, router]);
+  }, [isAuthenticated, user]);
 
-  // ✅ Loader UI
+  //  PREMIUM LOADER UI
   if (loadingRedirect) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-900">
         <div className="relative flex items-center justify-center">
+          {/* Rotating Outer Ring */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{
@@ -66,6 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             className="w-28 h-28 border-t-4 border-b-4 border-cyan-400/60 rounded-full"
           />
 
+          {/* Pulsing Stethoscope */}
           <motion.div
             animate={{
               scale: [1, 1.15, 1],
@@ -87,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Left Side */}
+      {/* Left Side - Form */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -105,7 +96,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <HeartPlus className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">HealthPlus+</h1>
+              <h1 className="text-3xl font-bold text-white"> HealthPlus+</h1>
               <p className="text-sm text-gray-400">Healthcare Reimagined</p>
             </div>
           </motion.div>
@@ -114,8 +105,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {/* Right Side */}
+      {/* Right Side - Hero */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden">
+        {/* Animated Gradient Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 opacity-80 animate-gradient-shift" />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-2xl" />
@@ -123,24 +115,33 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Floating Orbs */}
         <motion.div
-          animate={{ y: [0, -30, 0], rotate: [0, 180, 360] }}
+          animate={{
+            y: [0, -30, 0],
+            rotate: [0, 180, 360],
+          }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-cyan-400/30 to-blue-500/30 rounded-full blur-3xl"
         />
 
         <motion.div
-          animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
+          animate={{
+            y: [0, 40, 0],
+            x: [0, 30, 0],
+          }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-32 right-32 w-96 h-96 bg-gradient-to-tr from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
         />
 
         <motion.div
-          animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, -90, 0],
+          }}
           transition={{ duration: 25, repeat: Infinity }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl"
         />
 
-        {/* Content */}
+        {/* Main Content */}
         <div className="relative z-20 flex flex-col items-center justify-center w-full h-full px-16 text-white">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -148,8 +149,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             transition={{ delay: 0.4 }}
             className="text-center space-y-8 max-w-2xl"
           >
-            <h2 className="text-6xl lg:text-7xl font-extrabold">
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+            <h2 className="text-6xl lg:text-7xl font-extrabold leading-tight">
+              <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-gradient-text">
                 Healthcare
               </span>
               <br />
@@ -161,7 +162,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               secure video calls.
             </p>
 
-            {/* Features */}
+            {/* Feature Cards */}
             <div className="grid grid-cols-3 gap-6 mt-12">
               {[
                 {
@@ -187,7 +188,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   transition={{ delay: 0.6 + i * 0.1 }}
                   className="group"
                 >
-                  <div className="p-6 rounded-3xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
+                  <div
+                    className={`p-6 rounded-3xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20`}
+                  >
                     <div
                       className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${item.color} p-3 shadow-lg`}
                     >
@@ -222,7 +225,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Mobile gradient fade */}
+      {/* Mobile Bottom Gradient */}
       <div className="lg:hidden absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
     </div>
   );
