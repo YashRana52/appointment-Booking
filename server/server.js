@@ -27,6 +27,7 @@ app.use(morgan("dev"));
 app.use(
   cors({
     origin: "https://appointment-booking-plum.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

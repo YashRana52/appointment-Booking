@@ -15,18 +15,15 @@ interface AuthState {
   error: string | null;
   isAuthenticated: boolean;
 
-  //actions
   setUser: (user: User, token: string) => void;
   clearError: () => void;
   logout: () => void;
-
-  //api actions
 
   loginDoctor: (email: string, password: string) => Promise<void>;
   loginPatient: (email: string, password: string) => Promise<void>;
   registerDoctor: (data: any) => Promise<void>;
   registerpatient: (data: any) => Promise<void>;
-  fetchProfile: (data: any) => Promise<User | null>;
+  fetchProfile: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
 }
 
@@ -39,6 +36,7 @@ export const userAuthStore = create<AuthState>()(
       error: null,
       isAuthenticated: false,
 
+      // Save login data
       setUser: (user, token) => {
         set({
           user,
@@ -46,125 +44,147 @@ export const userAuthStore = create<AuthState>()(
           isAuthenticated: true,
           error: null,
         });
+
         localStorage.setItem("token", token);
       },
+
       clearError: () => set({ error: null }),
 
       logout: () => {
         localStorage.removeItem("token");
         set({
           user: null,
+          token: null,
           isAuthenticated: false,
           error: null,
         });
       },
 
-      //login as a  doctor
+      // Doctor Login
       loginDoctor: async (email, password) => {
         set({ loading: true, error: null });
+
         try {
-          const response = await postWithoutAuth("auth/doctor/login", {
+          const res = await postWithoutAuth("auth/doctor/login", {
             email,
             password,
           });
 
-          get().setUser(response.data.user, response.data.token);
-        } catch (error: any) {
-          set({ error: error.message });
-          throw error;
+          get().setUser(res.data.user, res.data.token);
+        } catch (err: any) {
+          set({ error: err.message });
+          throw err;
         } finally {
           set({ loading: false });
         }
       },
-      //login as a  patient
+
+      // Patient Login
       loginPatient: async (email, password) => {
         set({ loading: true, error: null });
+
         try {
-          const response = await postWithoutAuth("auth/patient/login", {
+          const res = await postWithoutAuth("auth/patient/login", {
             email,
             password,
           });
 
-          get().setUser(response.data.user, response.data.token);
-        } catch (error: any) {
-          set({ error: error.message });
-          throw error;
+          get().setUser(res.data.user, res.data.token);
+        } catch (err: any) {
+          set({ error: err.message });
+          throw err;
         } finally {
           set({ loading: false });
         }
       },
-      //register as a  doctor
+
+      // Register Doctor
       registerDoctor: async (data) => {
         set({ loading: true, error: null });
-        try {
-          const response = await postWithoutAuth("auth/doctor/register", data);
 
-          get().setUser(response.data.user, response.data.token);
-        } catch (error: any) {
-          set({ error: error.message });
-          throw error;
+        try {
+          const res = await postWithoutAuth("auth/doctor/register", data);
+          get().setUser(res.data.user, res.data.token);
+        } catch (err: any) {
+          set({ error: err.message });
+          throw err;
         } finally {
           set({ loading: false });
         }
       },
-      //register as a  patient
+
+      // Register Patient
       registerpatient: async (data) => {
         set({ loading: true, error: null });
-        try {
-          const response = await postWithoutAuth("auth/patient/register", data);
 
-          get().setUser(response.data.user, response.data.token);
-        } catch (error: any) {
-          set({ error: error.message });
-          throw error;
+        try {
+          const res = await postWithoutAuth("auth/patient/register", data);
+          get().setUser(res.data.user, res.data.token);
+        } catch (err: any) {
+          set({ error: err.message });
+          throw err;
         } finally {
           set({ loading: false });
         }
       },
 
-      //profile fetch
+      // ⭐ Fetch user after refresh (VERY IMPORTANT)
+      fetchProfile: async () => {
+        const token = localStorage.getItem("token");
 
-      fetchProfile: async (): Promise<User | null> => {
-        set({ loading: true, error: null });
+        if (!token) {
+          set({ user: null, isAuthenticated: false });
+          return;
+        }
+
+        set({ loading: true });
+
         try {
-          const { user } = get();
-          if (!user) throw new Error("No user found");
+          const storedUser = get().user;
 
-          const endPoint = user.type === "doctor" ? "doctor/me" : "patient/me";
+          const endpoint =
+            storedUser?.type === "doctor" ? "doctor/me" : "patient/me";
 
-          const response = await getWithAuth(endPoint);
+          const res = await getWithAuth(endpoint);
 
-          set({ user: { ...user, ...response.data } });
-          return response.data;
-        } catch (error: any) {
-          set({ error: error.message });
-          return null;
+          set({
+            user: { ...storedUser, ...res.data },
+            isAuthenticated: true,
+          });
+        } catch {
+          set({ user: null, isAuthenticated: false });
         } finally {
           set({ loading: false });
         }
       },
 
+      // Update onboarding fields
       updateProfile: async (data) => {
-        set({ loading: true, error: null });
+        set({ loading: true });
+
         try {
-          const { user } = get();
+          const user = get().user;
           if (!user) throw new Error("No user found");
 
-          const endPoint =
+          const endpoint =
             user.type === "doctor"
               ? "doctor/onboarding/update"
               : "patient/onboarding/update";
 
-          const response = await putWithAuth(endPoint, data);
-          set({ user: { ...user, ...response.data } });
-        } catch (error: any) {
-          set({ error: error.message });
-          throw error;
+          const res = await putWithAuth(endpoint, data);
+
+          set({
+            user: { ...user, ...res.data },
+          });
+        } catch (err: any) {
+          set({ error: err.message });
+          throw err;
         } finally {
           set({ loading: false });
         }
       },
     }),
+
     {
       name: "auth-storage",
       partialize: (state) => ({
