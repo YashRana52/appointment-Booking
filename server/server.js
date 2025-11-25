@@ -26,7 +26,7 @@ app.use(morgan("dev"));
 // CORS setup
 app.use(
   cors({
-    origin: "https://appointment-booking-g3dg.vercel.app",
+    origin: "https://appointment-booking-green-iota.vercel.app",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
