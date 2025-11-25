@@ -95,8 +95,8 @@ function ProfilePage({ userType }: ProfileProps) {
   });
 
   useEffect(() => {
-    fetchProfile(userType);
-  }, [fetchProfile, userType]);
+    fetchProfile();
+  }, [fetchProfile]);
 
   useEffect(() => {
     if (user) {
