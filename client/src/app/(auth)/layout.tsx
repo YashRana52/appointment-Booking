@@ -19,39 +19,33 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { isAuthenticated, user, hydrated } = userAuthStore();
+  const { isAuthenticated, user } = userAuthStore();
   const router = useRouter();
   const [loadingRedirect, setLoadingRedirect] = useState(false);
 
+  // Redirect With Loader
   useEffect(() => {
-    if (!hydrated) return;
+    if (isAuthenticated && user) {
+      setLoadingRedirect(true);
 
-    // If no user → no redirect
-    if (!user || !isAuthenticated) return;
+      setTimeout(() => {
+        if (!user.isVerified) {
+          router.push(`/onboarding/${user.type}`);
+        } else {
+          router.push(
+            user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
+          );
+        }
+      }, 1500);
+    }
+  }, [isAuthenticated, user]);
 
-    setLoadingRedirect(true);
-
-    const timer = setTimeout(() => {
-      if (!user.isVerified) {
-        router.push(`/onboarding/${user.type}`);
-      } else {
-        router.push(
-          user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
-        );
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [hydrated, isAuthenticated, user]);
-
-  // Prevent flicker before hydration
-  if (!hydrated) return null;
-
-  // 🌟 SHOW LOADER DURING REDIRECT
+  //  PREMIUM LOADER UI
   if (loadingRedirect) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-900">
         <div className="relative flex items-center justify-center">
+          {/* Rotating Outer Ring */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{
@@ -62,6 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             className="w-28 h-28 border-t-4 border-b-4 border-cyan-400/60 rounded-full"
           />
 
+          {/* Pulsing Stethoscope */}
           <motion.div
             animate={{
               scale: [1, 1.15, 1],
@@ -83,12 +78,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Left Side - Form */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16"
       >
         <div className="w-full max-w-md">
+          {/* Logo */}
           <motion.div
             initial={{ y: -30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -108,12 +105,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
+      {/* Right Side - Hero */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden">
+        {/* Animated Gradient Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 opacity-80 animate-gradient-shift" />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-2xl" />
         </div>
 
+        {/* Floating Orbs */}
         <motion.div
           animate={{
             y: [0, -30, 0],
@@ -141,6 +141,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl"
         />
 
+        {/* Main Content */}
         <div className="relative z-20 flex flex-col items-center justify-center w-full h-full px-16 text-white">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -161,6 +162,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               secure video calls.
             </p>
 
+            {/* Feature Cards */}
             <div className="grid grid-cols-3 gap-6 mt-12">
               {[
                 {
@@ -200,6 +202,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               ))}
             </div>
 
+            {/* Trust Badges */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -222,6 +225,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
 
+      {/* Mobile Bottom Gradient */}
       <div className="lg:hidden absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
     </div>
   );
