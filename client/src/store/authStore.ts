@@ -170,6 +170,7 @@ export const userAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      skipHydration: true,
 
       partialize: (state) => ({
         user: state.user,

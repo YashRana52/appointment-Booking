@@ -23,23 +23,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
   const [loadingRedirect, setLoadingRedirect] = useState(false);
 
-  // 🔥 WAIT FOR HYDRATION
   useEffect(() => {
     if (!hydrated) return;
 
-    if (isAuthenticated && user) {
-      setLoadingRedirect(true);
+    // If no user → no redirect
+    if (!user || !isAuthenticated) return;
 
-      setTimeout(() => {
-        if (!user.isVerified) {
-          router.push(`/onboarding/${user.type}`);
-        } else {
-          router.push(
-            user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
-          );
-        }
-      }, 1000);
-    }
+    setLoadingRedirect(true);
+
+    const timer = setTimeout(() => {
+      if (!user.isVerified) {
+        router.push(`/onboarding/${user.type}`);
+      } else {
+        router.push(
+          user.type === "doctor" ? "/doctor/dashboard" : "/patient/dashboard"
+        );
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [hydrated, isAuthenticated, user]);
 
   // Prevent flicker before hydration
