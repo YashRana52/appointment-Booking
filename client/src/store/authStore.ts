@@ -1,3 +1,4 @@
+// authStore.ts
 import { User } from "@/lib/types";
 import {
   getWithAuth,
@@ -14,13 +15,11 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  hydrated: boolean;
 
-  //actions
   setUser: (user: User, token: string) => void;
   clearError: () => void;
   logout: () => void;
-
-  //api actions
 
   loginDoctor: (email: string, password: string) => Promise<void>;
   loginPatient: (email: string, password: string) => Promise<void>;
@@ -28,6 +27,8 @@ interface AuthState {
   registerpatient: (data: any) => Promise<void>;
   fetchProfile: (data: any) => Promise<User | null>;
   updateProfile: (data: any) => Promise<void>;
+
+  setHydrated: () => void;
 }
 
 export const userAuthStore = create<AuthState>()(
@@ -38,6 +39,9 @@ export const userAuthStore = create<AuthState>()(
       loading: false,
       error: null,
       isAuthenticated: false,
+      hydrated: false,
+
+      setHydrated: () => set({ hydrated: true }),
 
       setUser: (user, token) => {
         set({
@@ -48,18 +52,19 @@ export const userAuthStore = create<AuthState>()(
         });
         localStorage.setItem("token", token);
       },
+
       clearError: () => set({ error: null }),
 
       logout: () => {
         localStorage.removeItem("token");
         set({
           user: null,
+          token: null,
           isAuthenticated: false,
           error: null,
         });
       },
 
-      //login as a  doctor
       loginDoctor: async (email, password) => {
         set({ loading: true, error: null });
         try {
@@ -76,7 +81,7 @@ export const userAuthStore = create<AuthState>()(
           set({ loading: false });
         }
       },
-      //login as a  patient
+
       loginPatient: async (email, password) => {
         set({ loading: true, error: null });
         try {
@@ -93,7 +98,7 @@ export const userAuthStore = create<AuthState>()(
           set({ loading: false });
         }
       },
-      //register as a  doctor
+
       registerDoctor: async (data) => {
         set({ loading: true, error: null });
         try {
@@ -107,7 +112,7 @@ export const userAuthStore = create<AuthState>()(
           set({ loading: false });
         }
       },
-      //register as a  patient
+
       registerpatient: async (data) => {
         set({ loading: true, error: null });
         try {
@@ -122,17 +127,15 @@ export const userAuthStore = create<AuthState>()(
         }
       },
 
-      //profile fetch
-
       fetchProfile: async (): Promise<User | null> => {
         set({ loading: true, error: null });
         try {
           const { user } = get();
           if (!user) throw new Error("No user found");
 
-          const endPoint = user.type === "doctor" ? "doctor/me" : "patient/me";
+          const endpoint = user.type === "doctor" ? "doctor/me" : "patient/me";
 
-          const response = await getWithAuth(endPoint);
+          const response = await getWithAuth(endpoint);
 
           set({ user: { ...user, ...response.data } });
           return response.data;
@@ -150,12 +153,12 @@ export const userAuthStore = create<AuthState>()(
           const { user } = get();
           if (!user) throw new Error("No user found");
 
-          const endPoint =
+          const endpoint =
             user.type === "doctor"
               ? "doctor/onboarding/update"
               : "patient/onboarding/update";
 
-          const response = await putWithAuth(endPoint, data);
+          const response = await putWithAuth(endpoint, data);
           set({ user: { ...user, ...response.data } });
         } catch (error: any) {
           set({ error: error.message });
@@ -167,11 +170,16 @@ export const userAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+
       partialize: (state) => ({
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated();
+      },
     }
   )
 );
