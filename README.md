@@ -12,9 +12,13 @@ A **complete full‑stack doctor appointment & consultation platform** where pat
 
 ## 📸 Screenshots
 
-| Home Page                         | Community Project                   |  Website Generation                      |
+| Home Page                         | Doctor Page                    | Appoinment Page                     |
 |----------------------------------|----------------------------------|-----------------------------------|
-| ![Home](https://github.com/YashRana52/Ai-Website-Builder/blob/main/Screenshot%202025-12-15%20121955.png?raw=true) | ![Community](https://github.com/YashRana52/Ai-Website-Builder/blob/main/Screenshot%202025-12-15%20122106.png?raw=true) | ![Website](https://github.com/YashRana52/Ai-Website-Builder/blob/main/Screenshot%202025-12-15%20122141.png?raw=true) |
+| ![Home](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130008.png?raw=true) | ![Doctors](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130057.png?raw=true) | ![Appoinment](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130243.png?raw=true) |
+
+| Patient Profile                    | Doctor Dashboard                   | Appoinment                    |
+|----------------------------------|----------------------------------|-----------------------------------|
+| ![Patient Profile](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130340.png?raw=true) | ![Dashboard](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130631.png?raw=true) | ![Appoinment](https://github.com/YashRana52/appointment-Booking/blob/main/Screenshot%202025-12-15%20130653.png?raw=true) |
 
 ---
 
