@@ -8,7 +8,7 @@ const emergencyContactSchema = new mongoose.Schema(
     phone: { type: String, required: true },
     relationship: { type: String, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 //medical history
@@ -18,7 +18,7 @@ const medicalHistorySchema = new mongoose.Schema(
     currentMedications: { type: String, default: "" },
     chronicConditions: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const patientSchema = new mongoose.Schema(
@@ -39,8 +39,9 @@ const patientSchema = new mongoose.Schema(
     emergencyContact: emergencyContactSchema,
     medicalHistory: medicalHistorySchema,
     isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 //  calculate age from dob

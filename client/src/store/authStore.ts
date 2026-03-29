@@ -24,6 +24,7 @@ interface AuthState {
 
   loginDoctor: (email: string, password: string) => Promise<void>;
   loginPatient: (email: string, password: string) => Promise<void>;
+  loginAdmin: (email: string, password: string) => Promise<void>;
   registerDoctor: (data: any) => Promise<void>;
   registerpatient: (data: any) => Promise<void>;
   fetchProfile: (data: any) => Promise<User | null>;
@@ -93,6 +94,24 @@ export const userAuthStore = create<AuthState>()(
           set({ loading: false });
         }
       },
+
+      //login as a admin
+      loginAdmin: async (email, password) => {
+        set({ loading: true, error: null });
+        try {
+          const response = await postWithoutAuth("admin/auth/login", {
+            email,
+            password,
+          });
+
+          get().setUser(response.data.user, response.data.token);
+        } catch (error: any) {
+          set({ error: error.message });
+          throw error;
+        } finally {
+          set({ loading: false });
+        }
+      },
       //register as a  doctor
       registerDoctor: async (data) => {
         set({ loading: true, error: null });
@@ -130,7 +149,12 @@ export const userAuthStore = create<AuthState>()(
           const { user } = get();
           if (!user) throw new Error("No user found");
 
-          const endPoint = user.type === "doctor" ? "doctor/me" : "patient/me";
+          const endPoint =
+            user.type === "doctor"
+              ? "doctor/me"
+              : user.type === "patient"
+                ? "patient/me"
+                : "admin/profile";
 
           const response = await getWithAuth(endPoint);
 
@@ -172,6 +196,6 @@ export const userAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

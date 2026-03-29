@@ -16,6 +16,7 @@ import doctorRouter from "./routes/doctor.js";
 import patientRouter from "./routes/patient.js";
 import appointmentRouter from "./routes/appointment.js";
 import paymentRouter from "./routes/payment.js";
+import adminRouter from "./routes/admin.js";
 
 const app = express();
 
@@ -31,7 +32,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 
 // Body Parser
@@ -58,6 +59,7 @@ app.use("/api/doctor", doctorRouter);
 app.use("/api/patient", patientRouter);
 app.use("/api/appointment", appointmentRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/admin", adminRouter);
 
 // Health Check
 app.get("/health", (req, res) => {

@@ -17,7 +17,7 @@ const dailyTimeRangeSchema = new mongoose.Schema(
     start: { type: String },
     end: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const availabilityRangeSchema = new mongoose.Schema(
@@ -26,7 +26,7 @@ const availabilityRangeSchema = new mongoose.Schema(
     endDate: { type: String },
     excludedWeekdays: { type: [Number], default: [] },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const doctorSchema = new mongoose.Schema(
@@ -71,9 +71,10 @@ const doctorSchema = new mongoose.Schema(
     dailyTimeRanges: { type: [dailyTimeRangeSchema], default: [] },
     slotDurationMinutes: { type: Number, default: 30 },
     isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
 
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Doctor", doctorSchema);

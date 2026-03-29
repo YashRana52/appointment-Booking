@@ -85,7 +85,7 @@ router.get(
       console.error("Doctor fetch failed:", error);
       res.serverError("Doctor fetch failed", [error.message]);
     }
-  }
+  },
 );
 
 //  Get Doctor Profile
@@ -93,7 +93,7 @@ router.get(
 router.get("/me", authenticate, requireRole("doctor"), async (req, res) => {
   try {
     const doc = await Doctor.findById(req.user._id).select(
-      "-password -googleId"
+      "-password -googleId",
     );
     res.ok(doc, "Profile Fetched");
   } catch (error) {
@@ -139,7 +139,7 @@ router.put(
     } catch (error) {
       res.serverError("Update failed", [error.message]);
     }
-  }
+  },
 );
 
 router.get(
@@ -154,7 +154,7 @@ router.get(
       const startOfDay = new Date(
         now.getFullYear(),
         now.getMonth(),
-        now.getDate()
+        now.getDate(),
       );
       const endOfDay = new Date(
         now.getFullYear(),
@@ -163,7 +163,7 @@ router.get(
         23,
         59,
         59,
-        999
+        999,
       );
 
       // Doctor details
@@ -205,12 +205,13 @@ router.get(
       });
 
       // Total revenue (only completed appointments)
-      const completedAppointments = await Appointment.find({
+      const paidAppointments = await Appointment.find({
         doctorId,
         status: "Completed",
+        payoutStatus: "Paid",
       }).select("consultationFees totalAmount");
 
-      const totalRevenue = completedAppointments.reduce((sum, apt) => {
+      const totalRevenue = paidAppointments.reduce((sum, apt) => {
         return (
           sum + (apt.totalAmount || apt.consultationFees || doctor.fees || 0)
         );
@@ -237,18 +238,18 @@ router.get(
           performance: {
             patientSatisfaction: 4.8,
             completionRate: Math.round(
-              (completedAppointment / (completedAppointment + 10)) * 100
+              (completedAppointment / (completedAppointment + 10)) * 100,
             ),
             responseTime: "<5min",
           },
         },
-        "Dashboard data retrieved successfully"
+        "Dashboard data retrieved successfully",
       );
     } catch (error) {
       console.error("Dashboard error:", error);
       res.serverError("Failed to fetch dashboard data", error.message);
     }
-  }
+  },
 );
 //get doctor by id
 router.get("/:doctorId", validate, async (req, res) => {

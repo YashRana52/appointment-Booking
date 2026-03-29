@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Bell,
-  Calendar,
-  HeartPulse,
-  Settings,
-  Stethoscope,
-  User,
-} from "lucide-react";
+import { Bell, Calendar, HeartPulse, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -217,6 +210,15 @@ const Header: React.FC<HeaderProps> = ({ showDashBoardNav = false }) => {
                   variant="ghost"
                 >
                   Log in
+                </Button>
+              </Link>
+              <Link href="/admin/login">
+                <Button
+                  className="text-gray-600 font-medium hover:text-gray-800 flex items-center"
+                  variant="ghost"
+                >
+                  <Shield className="w-4 h-4 mr-1 text-gray-500" />
+                  Admin
                 </Button>
               </Link>
               <Link href="/signup/patient" className="hidden md:block">

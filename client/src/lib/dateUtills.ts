@@ -30,3 +30,22 @@ export const startOfDay = (date: Date): Date => {
   d.setHours(0, 0, 0, 0);
   return d;
 };
+
+export const formatCurrency = (value: number) => {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+  if (value >= 1000) return `₹${(value / 1000).toFixed(1)}K`;
+  return `₹${value}`;
+};
+
+export const toLocalReadableDate = (date: Date): string => {
+  const day = date.getDate();
+
+  const month = date.toLocaleString("en-IN", {
+    month: "short",
+  });
+
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+};

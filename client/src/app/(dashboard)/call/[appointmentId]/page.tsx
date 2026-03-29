@@ -1,20 +1,34 @@
 "use client";
 
-import AppointmentCall from "@/components/calling/AppointmentCall";
+import dynamic from "next/dynamic";
 import { useAppointmentStore } from "@/store/appointmentStore";
 import { userAuthStore } from "@/store/authStore";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useState } from "react";
 
-import React, { use, useCallback, useEffect, useState } from "react";
+// ✅ Lazy load heavy video call component
+const AppointmentCall = dynamic(
+  () => import("@/components/calling/AppointmentCall"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading call interface...</div>
+      </div>
+    ),
+  },
+);
 
-function page() {
+function Page() {
   const params = useParams();
   const router = useRouter();
   const appointmentId = params.appointmentId as string;
+
   const { currentAppointment, fetchAppointmentById, joinConsultation } =
     useAppointmentStore();
+
   const { user } = userAuthStore();
+
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
@@ -22,11 +36,13 @@ function page() {
       fetchAppointmentById(appointmentId);
     }
   }, [appointmentId, fetchAppointmentById]);
-  //jaise call end ho usko handle krna
+
   const handleCallEnd = useCallback(async () => {
     if (isNavigating) return;
+
     try {
       setIsNavigating(true);
+
       if (user?.type === "doctor") {
         router.push(`/doctor/dashboard/completedCall=${appointmentId}`);
       } else {
@@ -56,6 +72,7 @@ function page() {
     name: user.name,
     role: user.type as "doctor" | "patient",
   };
+
   return (
     <AppointmentCall
       appointment={currentAppointment}
@@ -66,4 +83,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

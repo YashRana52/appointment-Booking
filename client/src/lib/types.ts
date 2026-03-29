@@ -34,7 +34,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  type: "doctor" | "patient";
+  type: "doctor" | "patient" | "admin";
   phone?: string;
   profileImage?: string;
   isVerified: boolean;
@@ -79,6 +79,15 @@ export interface User {
     end: string;
   }>;
   slotDurationMinutes?: number;
+
+  //admin
+  role?: string;
+  permissions?: {
+    userManagement?: boolean;
+    doctorManagement?: boolean;
+    paymentManagement?: boolean;
+    analytics?: boolean;
+  };
 }
 
 // interfaces/Doctor.ts
@@ -141,11 +150,11 @@ export interface MonthlyRevenue {
     year: number;
     month: number;
   };
-  revenue: number;
+  totalRevenue: number;
 }
 
 export interface UserManagementUser {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   type: "patient" | "doctor";
@@ -161,6 +170,7 @@ export interface PaymentRecord {
   doctorName: string;
   doctorEmail: string;
   patientName: string;
+  patientEmail: string;
   consultationFees: number;
   platformFees: number;
   totalAmount: number;
@@ -176,7 +186,7 @@ export interface ReportData {
       year: number;
       month: number;
     };
-    patients: number;
+    totalUsers: number;
   }>;
   appointmentStats: Array<{
     _id: string;
