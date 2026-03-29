@@ -27,12 +27,14 @@ app.use(morgan("dev"));
 // CORS setup
 app.use(
   cors({
-    origin: "https://appointment-booking-plum.vercel.app",
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://appointment-booking-plum.vercel.app",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  }),
+  })
 );
 
 // Body Parser
