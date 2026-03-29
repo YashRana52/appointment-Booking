@@ -31,6 +31,12 @@ out/
 Thumbs.db
 *.zip
 
+<<<<<<< HEAD
+=======
+echo client.zip >> .gitignore
+git add .gitignore
+git commit -m "Ignore client.zip"
+>>>>>>> temp-branch
 # Cache
 .cache/
 .next/cache/
